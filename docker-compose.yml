@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: procurement-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: procurement
+      POSTGRES_PASSWORD: procurement
+      POSTGRES_DB: procurement
+    ports:
+      - "5434:5432"
+    volumes:
+      - procurement-db-data:/var/lib/postgresql/data
+
+volumes:
+  procurement-db-data:
