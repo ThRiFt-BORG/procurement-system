@@ -1,18 +1,18 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { createLpo } from '@/lib/actions/lpos'
+import { createLpo, updateLpo } from '@/lib/actions/lpos'
 import { splitPrice, calcLineTotals, calcLpoTotals, formatKES } from '@/lib/money'
 import { inputClass, labelClass, btnPrimary, btnSecondary, btnGhost } from '@/components/form'
 
 let nextKey = 1
 
-export default function NewLpoForm({ suppliers, productsBySupplier }) {
-  const [supplierId, setSupplierId] = useState('')
-  const [orderDate, setOrderDate] = useState(new Date().toISOString().slice(0, 10))
-  const [notes, setNotes] = useState('')
-  const [terms, setTerms] = useState('Delivery within 48 hours. Goods subject to inspection on arrival.')
-  const [lines, setLines] = useState([])
+export default function NewLpoForm({ suppliers, productsBySupplier, editingLpoId, initial }) {
+  const [supplierId, setSupplierId] = useState(initial?.supplierId ?? '')
+  const [orderDate, setOrderDate] = useState(initial?.orderDate ?? new Date().toISOString().slice(0, 10))
+  const [notes, setNotes] = useState(initial?.notes ?? '')
+  const [terms, setTerms] = useState(initial?.terms ?? 'Delivery within 48 hours. Goods subject to inspection on arrival.')
+  const [lines, setLines] = useState(() => (initial?.lines ?? []).map((l) => ({ ...l, key: nextKey++ })))
   const [pending, setPending] = useState(false)
   const [error, setError] = useState(null)
 
@@ -74,7 +74,7 @@ export default function NewLpoForm({ suppliers, productsBySupplier }) {
 
     setPending(true)
     try {
-      await createLpo({
+      const payload = {
         supplierId,
         orderDate,
         notes,
@@ -85,10 +85,15 @@ export default function NewLpoForm({ suppliers, productsBySupplier }) {
           quotedPrice: Number(l.quotedPrice),
           vatBasis: l.vatBasis,
         })),
-      })
+      }
+      if (editingLpoId) {
+        await updateLpo(editingLpoId, payload)
+      } else {
+        await createLpo(payload)
+      }
     } catch (err) {
       if (err?.digest?.startsWith?.('NEXT_REDIRECT')) throw err
-      setError(err.message || 'Could not create the LPO')
+      setError(err.message || 'Could not save the LPO')
       setPending(false)
     }
   }
@@ -159,7 +164,7 @@ export default function NewLpoForm({ suppliers, productsBySupplier }) {
                     >
                       {availableProducts.map((p) => (
                         <option key={p.supplierProductId} value={p.supplierProductId}>
-                          {p.productName} ({p.unit})
+                          {p.productName} ({p.unit}) — {p.vatStatus === 'EXEMPT' ? 'Exempt' : `${p.vatRate}% VAT`}
                         </option>
                       ))}
                     </select>
@@ -185,14 +190,20 @@ export default function NewLpoForm({ suppliers, productsBySupplier }) {
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <select
-                      className={inputClass}
-                      value={line.vatBasis}
-                      onChange={(e) => updateLine(line.key, { vatBasis: e.target.value })}
-                    >
-                      <option value="EXCLUSIVE">Excl. VAT</option>
-                      <option value="INCLUSIVE">Incl. VAT</option>
-                    </select>
+                    {line.product?.vatStatus === 'EXEMPT' ? (
+                      <span className="inline-flex items-center h-[38px] text-xs text-muted" title="No VAT applies to this product — the price you enter is the price paid, nothing to add.">
+                        Exempt — no VAT
+                      </span>
+                    ) : (
+                      <select
+                        className={inputClass}
+                        value={line.vatBasis}
+                        onChange={(e) => updateLine(line.key, { vatBasis: e.target.value })}
+                      >
+                        <option value="EXCLUSIVE">Excl. VAT</option>
+                        <option value="INCLUSIVE">Incl. VAT</option>
+                      </select>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-right tabular-nums font-medium">{formatKES(line.lineTotal)}</td>
                   <td className="px-4 py-2 text-right">
@@ -234,7 +245,7 @@ export default function NewLpoForm({ suppliers, productsBySupplier }) {
       {error && <p className="text-sm text-critical">{error}</p>}
 
       <button type="submit" className={btnPrimary} disabled={pending}>
-        {pending ? 'Saving…' : 'Save LPO as draft'}
+        {pending ? 'Saving…' : editingLpoId ? 'Save changes' : 'Save LPO as draft'}
       </button>
     </form>
   )

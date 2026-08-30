@@ -42,9 +42,14 @@ export default async function ReportsPage({ searchParams }) {
         </a>
       </form>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="text-[11px] font-mono uppercase tracking-wide text-muted mb-2">For the selected period</div>
+      <div className="grid grid-cols-2 gap-3 mb-5">
         <StatCard label="Total expenditure" value={formatKES(report.totalExpenditure)} hint={`${report.lpoCount} LPOs`} />
         <StatCard label="VAT paid" value={formatKES(report.totalVat)} />
+      </div>
+
+      <div className="text-[11px] font-mono uppercase tracking-wide text-muted mb-2">Right now — not limited by the dates above</div>
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <StatCard label="Outstanding deliveries" value={report.outstandingDeliveries} hint="approved, not yet fully received" />
         <StatCard
           label="Pending credit notes"

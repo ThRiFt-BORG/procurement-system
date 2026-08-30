@@ -2,11 +2,13 @@ import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
 import StatusBadge from '@/components/StatusBadge'
 import { getCreditNotes } from '@/lib/queries'
-import { setCreditNoteStatus } from '@/lib/actions/creditNotes'
+import { setCreditNoteStatus, updateCreditNote } from '@/lib/actions/creditNotes'
 import { getCurrentUser, canMutate } from '@/lib/auth'
 import { formatKES } from '@/lib/money'
 import { formatDate } from '@/lib/utils'
-import { inputClass, btnGhost } from '@/components/form'
+import { inputClass, labelClass, btnGhost, btnPrimary } from '@/components/form'
+
+const EDITABLE_STATUSES = ['PENDING', 'REQUESTED']
 
 const STATUSES = ['PENDING', 'REQUESTED', 'RECEIVED', 'COMPLETED']
 const NEXT_STATUS = { PENDING: 'REQUESTED', REQUESTED: 'RECEIVED', RECEIVED: 'COMPLETED' }
@@ -73,14 +75,54 @@ export default async function CreditNotesPage({ searchParams }) {
                   <td className="px-4 py-3">
                     <StatusBadge status={cn.status} />
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    {editable && next && (
-                      <form action={setCreditNoteStatus.bind(null, cn.id, next)}>
-                        <button type="submit" className={btnGhost}>
-                          Mark {next.toLowerCase()}
-                        </button>
-                      </form>
-                    )}
+                  <td className="px-4 py-3 text-right align-top">
+                    <div className="flex items-center justify-end gap-2">
+                      {editable && next && (
+                        <form action={setCreditNoteStatus.bind(null, cn.id, next)}>
+                          <button type="submit" className={btnGhost}>
+                            Mark {next.toLowerCase()}
+                          </button>
+                        </form>
+                      )}
+                      {editable && EDITABLE_STATUSES.includes(cn.status) && (
+                        <details className="text-left">
+                          <summary className={`${btnGhost} inline-block cursor-pointer select-none`}>Edit</summary>
+                          <form action={updateCreditNote.bind(null, cn.id)} className="mt-2 space-y-2 w-56">
+                            <div>
+                              <label className={labelClass}>Amount</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="amount"
+                                defaultValue={Number(cn.amount)}
+                                className={inputClass}
+                              />
+                            </div>
+                            <div>
+                              <label className={labelClass}>Credit note number</label>
+                              <input name="creditNoteNumber" defaultValue={cn.creditNoteNumber ?? ''} className={inputClass} />
+                            </div>
+                            <div>
+                              <label className={labelClass}>Credit note date</label>
+                              <input
+                                type="date"
+                                name="creditNoteDate"
+                                defaultValue={cn.creditNoteDate ? new Date(cn.creditNoteDate).toISOString().slice(0, 10) : ''}
+                                className={inputClass}
+                              />
+                            </div>
+                            <div>
+                              <label className={labelClass}>Notes</label>
+                              <textarea name="notes" rows={2} defaultValue={cn.notes ?? ''} className={inputClass} />
+                            </div>
+                            <button type="submit" className={btnPrimary}>
+                              Save
+                            </button>
+                          </form>
+                        </details>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )

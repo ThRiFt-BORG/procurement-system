@@ -19,6 +19,9 @@ export async function createProduct(formData) {
   if (!categoryId) throw new Error('Category is required')
   if (!unit) throw new Error('Unit of measure is required')
 
+  const existing = await db.product.findFirst({ where: { name: { equals: name, mode: 'insensitive' } } })
+  if (existing) throw new Error(`A product named "${existing.name}" already exists`)
+
   const product = await db.product.create({
     data: {
       name,
@@ -52,7 +55,8 @@ export async function addPricePoint(formData) {
   const sourceReference = emptyToNull(formData.get('sourceReference'))
   const notes = emptyToNull(formData.get('notes'))
 
-  if (!supplierProductId || !quotedPrice) throw new Error('Supplier/product and price are required')
+  if (!supplierProductId) throw new Error('Supplier/product is required')
+  if (!quotedPrice || quotedPrice <= 0) throw new Error('Price must be greater than zero')
 
   const supplierProduct = await db.supplierProduct.findUniqueOrThrow({
     where: { id: supplierProductId },
@@ -98,9 +102,8 @@ export async function addSupplierWithPrice(formData) {
   const effectiveDateRaw = formData.get('effectiveDate')?.toString()
   const sourceReference = emptyToNull(formData.get('sourceReference'))
 
-  if (!productId || !supplierId || !quotedPrice) {
-    throw new Error('Product, supplier and price are required')
-  }
+  if (!productId || !supplierId) throw new Error('Product and supplier are required')
+  if (!quotedPrice || quotedPrice <= 0) throw new Error('Price must be greater than zero')
 
   const product = await db.product.findUniqueOrThrow({ where: { id: productId } })
 

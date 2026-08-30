@@ -9,14 +9,26 @@ export async function GET(request) {
 
   const report = await getReportData({ from, to })
 
-  const csv = toCsv(report.lpos, [
-    { label: 'LPO Number', value: (r) => r.lpoNumber },
-    { label: 'Date', value: (r) => formatDate(r.orderDate) },
-    { label: 'Supplier', value: (r) => r.supplier.name },
-    { label: 'Status', value: (r) => r.status },
-    { label: 'Subtotal', value: (r) => Number(r.subtotal).toFixed(2) },
-    { label: 'VAT', value: (r) => Number(r.vatTotal).toFixed(2) },
-    { label: 'Total', value: (r) => Number(r.grandTotal).toFixed(2) },
+  // One row per LPO line, not per LPO — this is what's actually needed to
+  // reconcile against a supplier invoice or hand to an accountant.
+  const rows = report.lpos.flatMap((lpo) =>
+    lpo.items.map((item) => ({ lpo, item }))
+  )
+
+  const csv = toCsv(rows, [
+    { label: 'LPO Number', value: (r) => r.lpo.lpoNumber },
+    { label: 'Date', value: (r) => formatDate(r.lpo.orderDate) },
+    { label: 'Supplier', value: (r) => r.lpo.supplier.name },
+    { label: 'Status', value: (r) => r.lpo.status },
+    { label: 'Category', value: (r) => r.item.product.category.name },
+    { label: 'Product', value: (r) => r.item.product.name },
+    { label: 'Quantity', value: (r) => Number(r.item.quantity) },
+    { label: 'Unit', value: (r) => r.item.unit },
+    { label: 'Unit Price (excl VAT)', value: (r) => Number(r.item.unitPrice).toFixed(2) },
+    { label: 'VAT Status', value: (r) => (r.item.vatStatus === 'EXEMPT' ? 'Exempt' : `${Number(r.item.vatRate)}%`) },
+    { label: 'Line Subtotal', value: (r) => Number(r.item.lineSubtotal).toFixed(2) },
+    { label: 'Line VAT', value: (r) => Number(r.item.lineVat).toFixed(2) },
+    { label: 'Line Total', value: (r) => Number(r.item.lineTotal).toFixed(2) },
   ])
 
   return new Response(csv, {

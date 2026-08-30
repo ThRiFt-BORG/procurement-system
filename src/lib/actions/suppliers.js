@@ -25,6 +25,9 @@ export async function createSupplier(formData) {
   const data = readSupplierForm(formData)
   if (!data.name) throw new Error('Supplier name is required')
 
+  const existing = await db.supplier.findFirst({ where: { name: { equals: data.name, mode: 'insensitive' } } })
+  if (existing) throw new Error(`A supplier named "${existing.name}" already exists`)
+
   const supplier = await db.supplier.create({ data })
   revalidatePath('/suppliers')
   redirect(`/suppliers/${supplier.id}`)
@@ -34,6 +37,11 @@ export async function updateSupplier(id, formData) {
   await requireUser()
   const data = readSupplierForm(formData)
   if (!data.name) throw new Error('Supplier name is required')
+
+  const existing = await db.supplier.findFirst({
+    where: { name: { equals: data.name, mode: 'insensitive' }, id: { not: id } },
+  })
+  if (existing) throw new Error(`A supplier named "${existing.name}" already exists`)
 
   await db.supplier.update({ where: { id }, data })
   revalidatePath('/suppliers')

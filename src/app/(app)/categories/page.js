@@ -2,7 +2,7 @@ import PageHeader from '@/components/PageHeader'
 import Card from '@/components/Card'
 import StatusBadge from '@/components/StatusBadge'
 import { getCategories } from '@/lib/queries'
-import { createCategory, setCategoryActive } from '@/lib/actions/categories'
+import { createCategory, setCategoryActive, updateCategory } from '@/lib/actions/categories'
 import { getCurrentUser, canMutate } from '@/lib/auth'
 import { inputClass, labelClass, btnPrimary, btnGhost } from '@/components/form'
 import { db } from '@/lib/db'
@@ -45,11 +45,29 @@ export default async function CategoriesPage() {
                   </td>
                   {editable && (
                     <td className="px-5 py-3 text-right">
-                      <form action={setCategoryActive.bind(null, c.id, !c.active)}>
-                        <button type="submit" className={btnGhost}>
-                          {c.active ? 'Deactivate' : 'Activate'}
-                        </button>
-                      </form>
+                      <div className="flex items-center justify-end gap-2">
+                        <details className="text-left">
+                          <summary className={`${btnGhost} inline-block cursor-pointer select-none`}>Edit</summary>
+                          <form action={updateCategory.bind(null, c.id)} className="mt-2 space-y-2 w-56">
+                            <div>
+                              <label className={labelClass}>Name</label>
+                              <input name="name" required defaultValue={c.name} className={inputClass} />
+                            </div>
+                            <div>
+                              <label className={labelClass}>Description</label>
+                              <textarea name="description" rows={2} defaultValue={c.description ?? ''} className={inputClass} />
+                            </div>
+                            <button type="submit" className={btnPrimary}>
+                              Save
+                            </button>
+                          </form>
+                        </details>
+                        <form action={setCategoryActive.bind(null, c.id, !c.active)}>
+                          <button type="submit" className={btnGhost}>
+                            {c.active ? 'Deactivate' : 'Activate'}
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   )}
                 </tr>

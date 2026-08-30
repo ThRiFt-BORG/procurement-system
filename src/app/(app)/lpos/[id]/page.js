@@ -22,7 +22,7 @@ const NEXT_ACTIONS = {
   FULLY_RECEIVED: [],
   CANCELLED: [],
 }
-const CANCELABLE = ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'PARTIALLY_RECEIVED']
+const CANCELABLE = ['DRAFT', 'PENDING_APPROVAL', 'APPROVED']
 
 export default async function LpoDetailPage({ params }) {
   const { id } = await params
@@ -33,7 +33,8 @@ export default async function LpoDetailPage({ params }) {
   const canApprove = user && ['MANAGER', 'ADMIN'].includes(user.role)
   const nextActions = editable ? (NEXT_ACTIONS[lpo.status] ?? []).filter((a) => a.status !== 'APPROVED' || canApprove) : []
   const canDeliver = editable && ['APPROVED', 'PARTIALLY_RECEIVED'].includes(lpo.status)
-  const canCancel = editable && CANCELABLE.includes(lpo.status)
+  // Once anything has been delivered, cancelling would drop that spend out of Reports — see setLpoStatus.
+  const canCancel = editable && CANCELABLE.includes(lpo.status) && lpo.deliveries.length === 0
 
   return (
     <div>
@@ -46,6 +47,11 @@ export default async function LpoDetailPage({ params }) {
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          {editable && lpo.status === 'DRAFT' && (
+            <Link href={`/lpos/${lpo.id}/edit`} className={btnSecondary}>
+              Edit
+            </Link>
+          )}
           {canDeliver && (
             <Link href={`/lpos/${lpo.id}/deliver`} className={btnPrimary}>
               Record delivery

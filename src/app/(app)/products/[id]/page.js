@@ -113,13 +113,17 @@ export default async function ProductDetailPage({ params }) {
                 <label className={labelClass}>Quoted price *</label>
                 <input type="number" step="0.01" min="0" name="quotedPrice" required className={inputClass} />
               </div>
-              <div>
-                <label className={labelClass}>Basis</label>
-                <select name="vatBasis" className={inputClass} defaultValue="EXCLUSIVE">
-                  <option value="EXCLUSIVE">Excludes VAT</option>
-                  <option value="INCLUSIVE">Includes VAT</option>
-                </select>
-              </div>
+              {product.vatStatus === 'EXEMPT' ? (
+                <p className="text-xs text-muted">This product is VAT exempt — the price above is the price paid, nothing to add.</p>
+              ) : (
+                <div>
+                  <label className={labelClass}>Basis</label>
+                  <select name="vatBasis" className={inputClass} defaultValue="EXCLUSIVE">
+                    <option value="EXCLUSIVE">Excludes VAT</option>
+                    <option value="INCLUSIVE">Includes VAT</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className={labelClass}>Effective date</label>
                 <input type="date" name="effectiveDate" className={inputClass} defaultValue={new Date().toISOString().slice(0, 10)} />
@@ -194,13 +198,17 @@ export default async function ProductDetailPage({ params }) {
                 <label className={labelClass}>Quoted price *</label>
                 <input type="number" step="0.01" min="0" name="quotedPrice" required className={inputClass} />
               </div>
-              <div>
-                <label className={labelClass}>Basis</label>
-                <select name="vatBasis" className={inputClass} defaultValue="EXCLUSIVE">
-                  <option value="EXCLUSIVE">Excludes VAT</option>
-                  <option value="INCLUSIVE">Includes VAT</option>
-                </select>
-              </div>
+              {product.vatStatus === 'EXEMPT' ? (
+                <p className="text-xs text-muted">This product is VAT exempt — the price above is the price paid, nothing to add.</p>
+              ) : (
+                <div>
+                  <label className={labelClass}>Basis</label>
+                  <select name="vatBasis" className={inputClass} defaultValue="EXCLUSIVE">
+                    <option value="EXCLUSIVE">Excludes VAT</option>
+                    <option value="INCLUSIVE">Includes VAT</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className={labelClass}>Effective date</label>
                 <input type="date" name="effectiveDate" className={inputClass} defaultValue={new Date().toISOString().slice(0, 10)} />

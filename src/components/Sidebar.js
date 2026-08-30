@@ -26,7 +26,10 @@ const NAV = [
 
 export default function Sidebar({ user }) {
   const pathname = usePathname()
-  const nav = user?.role === 'ADMIN' ? [...NAV, { href: '/users', label: 'Users', live: true }] : NAV
+  const nav =
+    user?.role === 'ADMIN'
+      ? [...NAV, { href: '/users', label: 'Users', live: true }, { href: '/audit-log', label: 'Audit Log', live: true }]
+      : NAV
 
   return (
     <aside className="no-print w-60 shrink-0 border-r border-line bg-surface flex flex-col">

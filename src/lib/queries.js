@@ -5,6 +5,14 @@ export async function getUsers() {
   return db.user.findMany({ orderBy: [{ active: 'desc' }, { name: 'asc' }] })
 }
 
+export async function getAuditLog({ entity, limit = 200 } = {}) {
+  return db.auditLog.findMany({
+    where: entity ? { entity } : undefined,
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  })
+}
+
 export async function getCategories() {
   return db.category.findMany({ orderBy: { name: 'asc' } })
 }
@@ -187,7 +195,7 @@ export async function getLpoById(id) {
       supplier: true,
       preparedBy: true,
       approvedBy: true,
-      items: { include: { product: true } },
+      items: { include: { product: true, priceHistory: true } },
       deliveries: { orderBy: { deliveryDate: 'desc' }, include: { items: true } },
     },
   })
