@@ -159,18 +159,43 @@ This address will change if the laptop's IP changes (e.g. after a router reset) 
 
 ## Updating the app later
 
-When there's a new version of the code to deploy:
+From time to time there'll be improvements to pull in — a new feature, a fix, whatever's changed on GitHub since this laptop was set up. None of your data (suppliers, products, prices, LPOs) is affected by this — updating only replaces the app's own code, never the database.
 
-```powershell
-cd C:\Apps\procurement-system
-git pull
-npm install
-npx prisma generate
-npx prisma migrate deploy
-npm run build
-```
+Budget about 5 minutes. Do this at a quiet moment, not mid-service, since the app is briefly unavailable while it rebuilds.
 
-Then restart the app (if it's running as a scheduled task, either restart the laptop, or find and stop the `node.exe` process in Task Manager and let the task's restart-on-failure setting bring it back — or just run `.\start-production.bat` again after stopping the old one).
+1. Open **VS Code**. Open its terminal: menu **Terminal → New Terminal** (or `` Ctrl+` ``).
+2. Make sure you're in the app's folder — the prompt should end in `...\procurement-system>`. If not:
+   ```powershell
+   cd C:\Apps\procurement-system
+   ```
+3. Pull the latest code:
+   ```powershell
+   git pull
+   ```
+   You should see a summary of files changed. If it says `Already up to date.`, there's nothing new — stop here.
+4. Reinstall dependencies and rebuild — run each of these one at a time, waiting for each to finish before the next:
+   ```powershell
+   npm install
+   ```
+   ```powershell
+   npx prisma generate
+   ```
+   ```powershell
+   npx prisma migrate deploy
+   ```
+   ```powershell
+   npm run build
+   ```
+   The last one (`npm run build`) takes the longest — a minute or two. It's done when you see the prompt return with no red error text.
+5. Restart the app so it picks up the new build:
+   - **If it's set up to start automatically** (Step 10 above): open **Task Scheduler**, find the **Procurement System** task, right-click it → **End** (this stops the currently-running old version), then right-click → **Run** (starts the new one). Or simplest — just restart the laptop.
+   - **If you start it by hand**: close the window running `start-production.bat`, then run it again:
+     ```powershell
+     .\start-production.bat
+     ```
+6. Open **http://localhost:3100** in a browser and confirm it loads and you can log in. That's it — you're on the new version.
+
+If anything goes wrong partway through (a red error message you don't understand), stop and don't keep guessing — send the exact error text to whoever maintains this system rather than trying more commands. The [Troubleshooting](#troubleshooting) table below covers the most common ones.
 
 ## Backing up the database
 
