@@ -18,6 +18,7 @@ const NAV = [
   { href: '/categories', label: 'Categories', live: true },
   { href: '/prices', label: 'Prices', live: true },
   { href: '/lpos', label: 'LPOs', live: true },
+  { href: '/import', label: 'Import prices', live: true },
   { href: '/deliveries', label: 'Deliveries', live: true },
   { href: '/credit-notes', label: 'Credit Notes', live: true },
   { href: '/reports', label: 'Reports', live: true },
